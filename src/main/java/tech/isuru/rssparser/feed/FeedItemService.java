@@ -29,7 +29,7 @@ public class FeedItemService {
         this.url = env.getProperty("feed.url");
     }
 
-    @Scheduled(fixedRate = 5_000) // TODO: Change fixedRate to 300_000
+    @Scheduled(fixedRate = 300_000)
     public void pollRssFeed() {
         try {
             List<FeedItem> feedItems = feedParser.getFeedItems(url);
@@ -40,15 +40,15 @@ public class FeedItemService {
         }
     }
 
-    public FeedItem saveOrUpdateItem(FeedItem item) {
+    private void saveOrUpdateItem(FeedItem item) {
         FeedItem existingItem = feedItemRepository.findFeedItemByTitle(item.getTitle());
         if(existingItem != null) {
             existingItem.setDescription(item.getDescription());
             existingItem.setPublishedDate(item.getPublishedDate());
             existingItem.setUpdatedDate(item.getUpdatedDate());
-            return feedItemRepository.save(existingItem);
+            feedItemRepository.save(existingItem);
         } else {
-            return feedItemRepository.save(item);
+            feedItemRepository.save(item);
         }
     }
 

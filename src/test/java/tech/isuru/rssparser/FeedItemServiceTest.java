@@ -1,47 +1,70 @@
 package tech.isuru.rssparser;
 
+import com.sun.syndication.io.FeedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.core.env.Environment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import tech.isuru.rssparser.feed.FeedItem;
 import tech.isuru.rssparser.feed.FeedItemRepository;
 import tech.isuru.rssparser.feed.FeedItemService;
 import tech.isuru.rssparser.feed.FeedParser;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
 class FeedItemServiceTest {
 
-    // TODO: Use given when then syntax
     private final FeedItemRepository feedItemRepository = Mockito.mock(FeedItemRepository.class);
     private final FeedParser feedParser = Mockito.mock(FeedParser.class);
     private final Environment env = Mockito.mock(Environment.class);
+    private final String feedUrl = "https://feeds.simplecast.com/54nAGcIl";
 
     private FeedItemService feedItemService;
 
     @BeforeEach
     void initFeedItemService() {
+        when(env.getProperty(anyString())).thenReturn(feedUrl);
         feedItemService = new FeedItemService(feedItemRepository, feedParser, env);
     }
 
     @Test
-    void userIsSavedWithGivenData() {
-        FeedItem feedItem = new FeedItem("Title", "Description", new Date(), new Date());
-        when(feedItemRepository.save(any(FeedItem.class))).then(returnsFirstArg());
-        FeedItem savedItem = feedItemService.saveOrUpdateItem(feedItem);
-        assertEquals(savedItem.getTitle(), feedItem.getTitle());
-        assertEquals(savedItem.getDescription(), feedItem.getDescription());
-        assertEquals(savedItem.getPublishedDate(), feedItem.getPublishedDate());
+    void whenPollRssFeedIsCalled_thenGetFeedItemsIsCalledOnce() throws FeedException, IOException {
+        feedItemService.pollRssFeed();
+        verify(feedParser, times(1)).getFeedItems(feedUrl);
     }
 
     @Test
-    void rssFeedIsPolled() {
-        feedItemService.pollRssFeed();
+    void givenDefaultItemDetails_whenGetItemsIsCalled_thenDefaultPageIsReturned() {
+        List<FeedItem> feedItems = new ArrayList<>();
+        feedItems.add(new FeedItem("Title1", "description1", new Date(), null));
+        feedItems.add(new FeedItem("Title2", "description2", new Date(), null));
+        feedItems.add(new FeedItem("Title3", "description3", new Date(), null));
+        feedItems.add(new FeedItem("Title4", "description4", new Date(), null));
+        feedItems.add(new FeedItem("Title5", "description5", new Date(), null));
+        feedItems.add(new FeedItem("Title6", "description6", new Date(), null));
+        feedItems.add(new FeedItem("Title7", "description7", new Date(), null));
+        feedItems.add(new FeedItem("Title8", "description8", new Date(), null));
+        feedItems.add(new FeedItem("Title9", "description9", new Date(), null));
+        feedItems.add(new FeedItem("Title10", "description10", new Date(), null));
+
+        Page<FeedItem> expectedItems = new PageImpl<>(feedItems);
+        when(feedItemRepository.findAll(any(PageRequest.class))).thenReturn(expectedItems);
+
+        int page = 0;
+        int size = 10;
+        Sort.Direction direction = Sort.Direction.DESC;
+        String sort = "publishedDate";
+        Page<FeedItem> actualItems = feedItemService.getItems(page, size, direction, sort);
+        assertEquals(actualItems, expectedItems);
     }
 }
