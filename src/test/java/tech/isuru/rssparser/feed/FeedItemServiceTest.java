@@ -1,4 +1,4 @@
-package tech.isuru.rssparser;
+package tech.isuru.rssparser.feed;
 
 import com.sun.syndication.io.FeedException;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,10 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import tech.isuru.rssparser.feed.FeedItem;
-import tech.isuru.rssparser.feed.FeedItemRepository;
-import tech.isuru.rssparser.feed.FeedItemService;
-import tech.isuru.rssparser.feed.FeedParser;
 
 import java.io.IOException;
 import java.util.ArrayList;

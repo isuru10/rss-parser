@@ -29,13 +29,14 @@ public class FeedItemService {
         this.url = env.getProperty("feed.url");
     }
 
-    @Scheduled(fixedRate = 300_000)
+    @Scheduled(initialDelay = 0, fixedRate = 300_000) // Run immediately when the server starts. Then repeat every 5 minutes
     public void pollRssFeed() {
         try {
             List<FeedItem> feedItems = feedParser.getFeedItems(url);
             feedItems.forEach(this::saveOrUpdateItem);
             logger.info("Poll successful");
         } catch (FeedException | IOException e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
     }
